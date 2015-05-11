@@ -151,7 +151,42 @@ def drawnode(draw,tree,x,y):
         txt='\n'.join(['%s:%d' %v for v in tree.results.items()])
         draw.text((x-20,y),txt,(0,0,0))
 
+def classify(observation,tree):
+    if tree.results!=None:
+        return tree.results    
+    else:
+        v=observation[tree.col]
+        branch=None
+        if isinstance(v,int) or isinstance(v,float):
+            if v>=tree.value:
+                branch=tree.tb
+            else:
+                branch=tree.fb
+        else:
+            if v==tree.value:
+                branch=tree.tb
+            else:
+                branch=tree.fb
+        return classify(observation,branch)
+
+def prune(tree,mingain):
+    if tree.tb.results==None:
+        prune(tree.tb,mingain)
+    if tree.fb.results==None:
+        prune(tree.fb,mingain)
+    if tree.fb.results!=None and tree.fb.results!=None:
+        tb,fb=[],[]
+        for v,c in tree.tb.results.items():
+            tb+=[[v]]*c
+        for v,c in tree.fb.results.items():
+            fb+=[[v]]*c
+        
+        delta=entropy(tb+fb)-(entropy(tb)+entropy(tb)/2)
+        if delta<mingain:
+            tree.tb,tree.fb=None,None
+            tree.results=uniquecounts(tb+fb)
         
 tree=bulidtree(my_data)
 printtree(tree)
-drawtree(tree,jpeg='treeview.jpg')
+#drawtree(tree,jpeg='treeview.jpg')
+r=classify(['(direct)','USA','yes',5],tree)
