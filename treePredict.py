@@ -185,8 +185,39 @@ def prune(tree,mingain):
         if delta<mingain:
             tree.tb,tree.fb=None,None
             tree.results=uniquecounts(tb+fb)
+
+def mdclassify(observation,tree):
+    if tree.results!=None:
+        return tree.results
+    else:
+        v=observation[tree.col]
+        if v==None:
+            tr,fr=mdclassify(observation,tree.tb),mdclassify(observation,tree.fb)
+            tcount=sum(tr.values())
+            fcount=sum(fr.values())
+            tw=float(tcount)/(tcount+fcount)
+            fw=float(fcount)/(tcount+fcount)
+            result={}
+            for k,v in tr.items():
+                result[k]=v*tw
+            for k,v in fr.items():
+                result[k]=v*fw
+        else:
+            if isinstance(v,int) or isinstance(v,float):
+                if v>=tree.value:
+                    branch=tree.tb
+                else:
+                    branch=tree.fb
+            else:
+                if v==tree.value:
+                    branch=tree.tb
+                else:
+                    branch=tree.fb
+            return mdclassify(observation,branch)
+            
         
 tree=bulidtree(my_data)
 printtree(tree)
 #drawtree(tree,jpeg='treeview.jpg')
-r=classify(['(direct)','USA','yes',5],tree)
+#r=classify(['(direct)','USA','yes',5],tree)
+r=mdclassify(['google',None,'yes',None],tree)
