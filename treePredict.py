@@ -125,7 +125,7 @@ def getdepth(tree):
 
 def drawtree(tree,jpeg='tree.jpg'):
     w=getwidth(tree)*100
-    h=getdepth(tree)*100+200
+    h=getdepth(tree)*100+120
     
     img=Image.new('RGB',(w,h),(255,255,255))
     draw=ImageDraw.Draw(img)
@@ -146,7 +146,7 @@ def drawnode(draw,tree,x,y):
         draw.line((x,y,right-w2/2,y+100),fill=(255,0,0))
         
         drawnode(draw,tree.fb,left+w1/2,y+100)
-        drawnode(draw,tree.fb,right-w2/2,y+100)
+        drawnode(draw,tree.tb,right-w2/2,y+100)
     else:
         txt='\n'.join(['%s:%d' %v for v in tree.results.items()])
         draw.text((x-20,y),txt,(0,0,0))
@@ -174,7 +174,7 @@ def prune(tree,mingain):
         prune(tree.tb,mingain)
     if tree.fb.results==None:
         prune(tree.fb,mingain)
-    if tree.fb.results!=None and tree.fb.results!=None:
+    if tree.fb.results!=None and tree.tb.results!=None:
         tb,fb=[],[]
         for v,c in tree.tb.results.items():
             tb+=[[v]]*c
@@ -218,6 +218,8 @@ def mdclassify(observation,tree):
         
 tree=bulidtree(my_data)
 printtree(tree)
-#drawtree(tree,jpeg='treeview.jpg')
-#r=classify(['(direct)','USA','yes',5],tree)
-r=mdclassify(['google',None,'yes',None],tree)
+#prune(tree,1.0)
+#printtree(tree)
+drawtree(tree,jpeg='treeview.jpg')
+r=classify(['(direct)','USA','yes',5],tree)
+#r=mdclassify(['google',None,'yes',None],tree)
