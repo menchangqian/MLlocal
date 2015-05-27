@@ -96,6 +96,23 @@ def dividedata(data,test=0.05):
             trainset.append(row)
     return trainset,testset
 
+def testalgorithm(algf,trainset,testset):
+    error=0.0
+    for row in testset:
+        guess=algf(trainset,row['input'])
+        error+=(row['result']-guess)**2
+    return error/len(testset)
+
+def crossvalidate(algf,data,trail=100,test=0.05):
+    error=0.0
+    for i in range(trail):
+        trainset,testset=dividedata(data,test)
+        error+=testalgorithm(algf,trainset,testset)
+    return error/trail
+
+        
   
-data=wineset1( )
-print knnestimate(data,(95.0,3.0))
+#data=wineset1( )
+#print knnestimate(data,(95.0,3.0))
+crossvalidate(knnestimate,data)
+  
