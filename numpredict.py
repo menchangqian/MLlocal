@@ -7,6 +7,7 @@ Created on Mon May 25 11:15:29 2015
 from numpy import *
 from random import random,randint
 import math
+from pylab import *
 
 def wineprice(rating,age):
     peak_age=rating-50
@@ -110,9 +111,88 @@ def crossvalidate(algf,data,trail=100,test=0.05):
         error+=testalgorithm(algf,trainset,testset)
     return error/trail
 
+def knninverse(d,v):
+    return weightedknn(d,v,weightf=inverseweight)
         
-  
-#data=wineset1( )
-#print knnestimate(data,(95.0,3.0))
-crossvalidate(knnestimate,data)
+def wineset2():
+    rows=[]
+    for i in range(300):
+        rating=random()*50+50
+        age=random()*50
+        aisle=float(randint(1,20))
+        bottlesize=[375.0,750.0,1500.0,3000.0][randint(0,3)]
+        price=wineprice(rating,age)
+        price*=(bottlesize/750)
+        price*=(random()*0.9+0.2)
+        rows.append({'input':(rating,age,aisle,bottlesize),'result':price})
+    return rows
+
+def rescale(data,scale):
+    scaleddata=[]
+    for row in data:
+        scaled=[scale[i]*row['input'][i] for i in range(len(scale))]
+        scaleddata.append({'input':scaled,'result':row['result']})
+    return scaleddata
+
+def wineset3():
+    rows=wineset1()
+    for row in rows:
+        if random()<0.5:
+            row['result']*=0.6
+    return rows
+
+def probguess(data,vec1,low,high,k=5,weightf=gaussian):
+    dlist,arg=getdistances(data,vec1)
+    nweight=0.0
+    tweight=0.0
+    
+    for i in range(k):
+        dist=dlist[i]
+        idx=arg[i]
+        weight=weightf(dist)
+        v=data[idx]['result']
+        
+        if v>low and v<high:
+            nweight+=weight
+        tweight+=weight
+    if tweight==0:
+        return 0
+    return nweight/tweight
+
+def cumulativegraph(data,vec1,high,k=5,weightf=gaussian):
+    t1=arange(0.0,high,0.5)
+    cprob=array([probguess(data,vec1,0,v,k,weightf) for v in t1])
+    plot(t1,cprob)
+    show()
+
+
+def probabilitygraph(data,vec1,high,k=30,weightf=gaussian,ss=5.0):
+    t1=arange(0.0,high,0.5)
+    probs=[probguess(data,vec1,v,v+0.1,k,weightf) for v in t1]
+    smoothed=[]
+    for i in range(len(probs)):
+        sv=0.0
+        for j in range(0,len(probs)):
+            dist=abs(i-j)*0.1
+            weight=gaussian(dist,sigma=ss)
+            sv+=weight*probs[j]
+        smoothed.append(sv)
+    smoothed=array(smoothed)
+    plot(t1,smoothed)
+    show( )
+
+data=wineset3( )
+#print  wineprice(99.0,20.0) 
+#print weightedknn(data,[99.0,20.0])
+#print crossvalidate(weightedknn,data)
+#print probguess(data,[99,20],40,80)
+#print probguess(data,[99,20],80,120)
+#print probguess(data,[99,20],120,1000)
+#cumulativegraph(data,(1,1),300)
+probabilitygraph(data,(1,1),300)
+#data=wineset2( )
+#sdata=rescale(data,[10,10,0,0.5])
+###print knnestimate(data,(95.0,3.0))
+##print crossvalidate(knnestimate,data)
+#print crossvalidate(weightedknn,sdata)
   
